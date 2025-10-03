@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PixelCrypt</title>
+    <title>Steganography Tool</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .bg-gradient-white {
             background: linear-gradient(to bottom, #ffffff, #f9fafb, #f3f4f6);
@@ -17,12 +18,33 @@
             max-height: 300px;
             object-fit: contain;
         }
+        .copy-button {
+            transition: all 0.2s ease;
+        }
+        .copy-button:hover {
+            transform: scale(1.1);
+        }
+        .copy-feedback {
+            position: absolute;
+            top: -30px;
+            right: 0;
+            background-color: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .copy-feedback.show {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-gradient-white min-h-screen flex flex-col">
     <header class="bg-white shadow-sm py-4">
         <div class="container mx-auto px-4">
-            <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800">PixelCrypt</h1>
+            <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800">Steganography Tool</h1>
             <p class="text-center text-gray-500 mt-1">Hide and reveal secret messages in images</p>
         </div>
     </header>
@@ -105,8 +127,12 @@
 
                 <div id="decode-result" class="mt-6 hidden">
                     <p class="text-gray-700 font-medium mb-2">Decoded Message:</p>
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <p id="decoded-message" class="text-gray-800 whitespace-pre-wrap"></p>
+                    <div class="bg-gray-100 p-4 rounded-lg relative">
+                        <p id="decoded-message" class="text-gray-800 whitespace-pre-wrap pr-10"></p>
+                        <div class="copy-feedback" id="copy-feedback">Copied!</div>
+                        <button onclick="copyDecodedMessage()" class="copy-button absolute top-2 right-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <i class="fas fa-copy"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -283,6 +309,27 @@
             document.getElementById('decoded-message').textContent = message;
             document.getElementById('decode-result').classList.remove('hidden');
         }
+
+        function copyDecodedMessage() {
+            const decodedMessage = document.getElementById('decoded-message').textContent;
+            
+            // Create a temporary textarea element to copy the text
+            const textarea = document.createElement('textarea');
+            textarea.value = decodedMessage;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // Show the "Copied!" feedback
+            const feedback = document.getElementById('copy-feedback');
+            feedback.classList.add('show');
+            
+            // Hide the feedback after 2 seconds
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 2000);
+        }
     </script>
 </body>
-                              </html>
+                                </html>
