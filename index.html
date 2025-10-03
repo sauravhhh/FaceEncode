@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steganography Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-gradient-white {
+            background: linear-gradient(to bottom, #ffffff, #f9fafb, #f3f4f6);
+        }
+        .tab-active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .image-preview {
+            max-height: 300px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body class="bg-gradient-white min-h-screen flex flex-col">
+    <header class="bg-white shadow-sm py-4">
+        <div class="container mx-auto px-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800">Steganography Tool</h1>
+            <p class="text-center text-gray-500 mt-1">Hide and reveal secret messages in images</p>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-6">
+        <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200">
+                <button id="encode-tab" class="flex-1 py-3 px-4 text-center font-medium tab-active transition-colors duration-200" onclick="switchTab('encode')">
+                    Encode Message
+                </button>
+                <button id="decode-tab" class="flex-1 py-3 px-4 text-center font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200" onclick="switchTab('decode')">
+                    Decode Message
+                </button>
+            </div>
+
+            <!-- Encode Tab Content -->
+            <div id="encode-content" class="p-6">
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-medium mb-2" for="encode-image">Upload Image</label>
+                    <div class="flex items-center justify-center w-full">
+                        <label for="encode-image-upload" class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6" id="encode-upload-placeholder">
+                                <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                <p class="text-xs text-gray-500">PNG, JPG, GIF (MAX. 5MB)</p>
+                            </div>
+                            <img id="encode-image-preview" class="hidden image-preview w-full h-full object-contain" alt="Preview">
+                            <input id="encode-image-upload" type="file" class="hidden" accept="image/*" onchange="previewEncodeImage(event)">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-medium mb-2" for="secret-message">Secret Message</label>
+                    <textarea id="secret-message" rows="4" class="w-full px-3 py-2 text-gray-700 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your secret message here..."></textarea>
+                </div>
+
+                <button onclick="encodeMessage()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                    Encode Message
+                </button>
+
+                <div id="encode-result" class="mt-6 hidden">
+                    <p class="text-green-600 font-medium mb-2">Message encoded successfully!</p>
+                    <div class="flex justify-center">
+                        <a id="download-link" download="encoded-image.png" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            Download Encoded Image
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Decode Tab Content -->
+            <div id="decode-content" class="p-6 hidden">
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-medium mb-2" for="decode-image">Upload Encoded Image</label>
+                    <div class="flex items-center justify-center w-full">
+                        <label for="decode-image-upload" class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6" id="decode-upload-placeholder">
+                                <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                <p class="text-xs text-gray-500">PNG, JPG, GIF (MAX. 5MB)</p>
+                            </div>
+                            <img id="decode-image-preview" class="hidden image-preview w-full h-full object-contain" alt="Preview">
+                            <input id="decode-image-upload" type="file" class="hidden" accept="image/*" onchange="previewDecodeImage(event)">
+                        </label>
+                    </div>
+                </div>
+
+                <button onclick="decodeMessage()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                    Decode Message
+                </button>
+
+                <div id="decode-result" class="mt-6 hidden">
+                    <p class="text-gray-700 font-medium mb-2">Decoded Message:</p>
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <p id="decoded-message" class="text-gray-800 whitespace-pre-wrap"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-4 text-center text-gray-500">
+        <p>Made with ❤️ by Sauravhhh</p>
+    </footer>
+
+    <script>
+        let encodeImageData = null;
+        let decodeImageData = null;
+
+        function switchTab(tab) {
+            const encodeTab = document.getElementById('encode-tab');
+            const decodeTab = document.getElementById('decode-tab');
+            const encodeContent = document.getElementById('encode-content');
+            const decodeContent = document.getElementById('decode-content');
+
+            if (tab === 'encode') {
+                encodeTab.classList.add('tab-active');
+                encodeTab.classList.remove('text-gray-500');
+                decodeTab.classList.remove('tab-active');
+                decodeTab.classList.add('text-gray-500');
+                encodeContent.classList.remove('hidden');
+                decodeContent.classList.add('hidden');
+            } else {
+                decodeTab.classList.add('tab-active');
+                decodeTab.classList.remove('text-gray-500');
+                encodeTab.classList.remove('tab-active');
+                encodeTab.classList.add('text-gray-500');
+                decodeContent.classList.remove('hidden');
+                encodeContent.classList.add('hidden');
+            }
+        }
+
+        function previewEncodeImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('encode-image-preview');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    document.getElementById('encode-upload-placeholder').classList.add('hidden');
+                    
+                    // Store image data for encoding
+                    const tempImg = new Image();
+                    tempImg.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = tempImg.width;
+                        canvas.height = tempImg.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(tempImg, 0, 0);
+                        encodeImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    };
+                    tempImg.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function previewDecodeImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('decode-image-preview');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    document.getElementById('decode-upload-placeholder').classList.add('hidden');
+                    
+                    // Store image data for decoding
+                    const tempImg = new Image();
+                    tempImg.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = tempImg.width;
+                        canvas.height = tempImg.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(tempImg, 0, 0);
+                        decodeImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    };
+                    tempImg.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function encodeMessage() {
+            if (!encodeImageData) {
+                alert('Please upload an image first');
+                return;
+            }
+
+            const message = document.getElementById('secret-message').value;
+            if (!message) {
+                alert('Please enter a secret message');
+                return;
+            }
+            
+            // Add a delimiter to mark the end of the message
+            const messageWithDelimiter = message + '\0';
+            
+            // Convert message to binary
+            let binaryMessage = '';
+            for (let i = 0; i < messageWithDelimiter.length; i++) {
+                const charCode = messageWithDelimiter.charCodeAt(i);
+                binaryMessage += charCode.toString(2).padStart(8, '0');
+            }
+
+            // Check if the image is large enough to hold the message
+            if (binaryMessage.length > encodeImageData.data.length / 4) {
+                alert('Message is too long for this image');
+                return;
+            }
+
+            // Copy the image data
+            const encodedImageData = new ImageData(
+                new Uint8ClampedArray(encodeImageData.data),
+                encodeImageData.width,
+                encodeImageData.height
+            );
+
+            // Encode the message in the LSB of the red channel
+            for (let i = 0; i < binaryMessage.length; i++) {
+                // Red channel is at position 4*i in the data array
+                const pixelIndex = i * 4;
+                // Clear the LSB and set it to the message bit
+                encodedImageData.data[pixelIndex] = (encodedImageData.data[pixelIndex] & 0xFE) | parseInt(binaryMessage[i]);
+            }
+
+            // Create a canvas to hold the encoded image
+            const canvas = document.createElement('canvas');
+            canvas.width = encodedImageData.width;
+            canvas.height = encodedImageData.height;
+            const ctx = canvas.getContext('2d');
+            ctx.putImageData(encodedImageData, 0, 0);
+
+            // Create a download link
+            const downloadLink = document.getElementById('download-link');
+            downloadLink.href = canvas.toDataURL('image/png');
+            
+            // Show the result section
+            document.getElementById('encode-result').classList.remove('hidden');
+        }
+
+        function decodeMessage() {
+            if (!decodeImageData) {
+                alert('Please upload an encoded image first');
+                return;
+            }
+            
+            // Extract the LSBs from the red channel
+            let binaryMessage = '';
+            for (let i = 0; i < decodeImageData.data.length / 4; i++) {
+                const pixelIndex = i * 4;
+                binaryMessage += (decodeImageData.data[pixelIndex] & 1).toString();
+            }
+
+            // Convert binary to text
+            let message = '';
+            for (let i = 0; i < binaryMessage.length; i += 8) {
+                const byte = binaryMessage.substr(i, 8);
+                if (byte.length < 8) break; // Incomplete byte
+                
+                const charCode = parseInt(byte, 2);
+                if (charCode === 0) break; // Null delimiter indicates end of message
+                
+                message += String.fromCharCode(charCode);
+            }
+
+            // Display the decoded message
+            document.getElementById('decoded-message').textContent = message;
+            document.getElementById('decode-result').classList.remove('hidden');
+        }
+    </script>
+</body>
+                              </html>
